@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIP Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>VIP Registration</h1>
+
+  <form id="registrationForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" placeholder="First Name" required>
+    <input type="text" id="name" placeholder="Last Name">
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" required>
+
+    <label for="company">Company:</label>
+    <input type="text" id="company" required>
+
+    <button type="submit">Register</button>
+  </form>
+
+  <h2>VIP List</h2>
+  <ul id="vipList"></ul>
+
+  <script>
+    // Function to send the registration data to the backend
+    const registerVIPAttendee = async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const company = document.getElementById('company').value;
+
+      if (!name || !email || !company) {
+        return;
+      }
+
+      const attendee = { name, email, company };
+
+      try {
+        const response = await fetch('/api/vips', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(attendee),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to register VIP attendee');
+        }
+
+        const { attendeeId } = await response.json();
+
+        // Update the VIP list
+        const vipList = document.getElementById('vipList');
+        const listItem = document.createElement('li');
+        listItem.textContent = `${name} - ${email} - ${company}`;
+        vipList.appendChild(listItem);
+
+        // Clear the form inputs
+        document.getElementById('name').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('company').value = '';
+      } catch (error) {
+        console.error('Error registering VIP attendee:', error);
+      }
+    };
+
+    // Function to fetch and display the VIP list from the backend
+    const fetchVIPAttendees = async () => {
+      try {
+        const response = await fetch('/api/vips');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch VIP attendees');
+        }
+
+        const attendees = await response.json();
+
+        // Update the VIP list
+        const vipList = document.getElementById('vipList');
+        attendees.forEach((attendee) => {
+          const listItem = document.createElement('li');
+          listItem.textContent = `${attendee.name} - ${attendee.email} - ${attendee.company}`;
+          vipList.appendChild(listItem);
+        });
+      } catch (error) {
+        console.error('Error fetching VIP attendees:', error);
+      }
+    };
+
+    // Attach the event listener to the registration form
+    const registrationForm = document.getElementById('registrationForm');
+    registrationForm.addEventListener('submit', registerVIPAttendee);
+
+    // Fetch and display the initial VIP list
+    fetchVIPAttendees();
+  </script>
+</body>
+</html>
